@@ -10,24 +10,25 @@ pipeline {
             }
         }
 
-        stage('Deploy PostgreSQL') {
-            steps {
-                sh """
-                # Stop and remove existing container if it exists
-                docker stop my-postgres || true
-                docker rm my-postgres || true
+       stage('Deploy PostgreSQL') {
+    steps {
+        sh """
+        docker stop my-postgres || true
+        docker rm my-postgres || true
+        docker volume rm pgdata || true
 
-                # Run PostgreSQL container
-                docker run -d \
-                    --name my-postgres \
-                    -e POSTGRES_USER=postgres \
-                    -e POSTGRES_PASSWORD=vuthy123 \
-                    -e POSTGRES_DB=test \
-                    -p 5432:5432 \
-                    postgres:17
-                """
-            }
-        }
+        docker run -d \\
+            --name my-postgres \\
+            -e POSTGRES_USER=postgres \\
+            -e POSTGRES_PASSWORD=vuthy123 \\
+            -e POSTGRES_DB=test \\
+            -p 5432:5432 \\
+            -v pgdata:/var/lib/postgresql/data \\
+            -v \$(pwd)/init.sql:/docker-entrypoint-initdb.d/init.sql \\
+            postgres:17
+        """
+    }
+}
     }
 
     post {
